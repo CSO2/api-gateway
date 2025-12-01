@@ -86,12 +86,16 @@ func newProxy(targetURL, stripPrefix string) (*httputil.ReverseProxy, error) {
 	proxy.Director = func(req *http.Request) {
 		// keep user headers
 		sub := req.Header.Get("X-User-Subject")
+		userId := req.Header.Get("X-User-Id")
 		roles := req.Header.Get("X-User-Roles")
 
 		orig(req)
 		req.Host = target.Host
 		if sub != "" {
 			req.Header.Set("X-User-Subject", sub)
+		}
+		if userId != "" {
+			req.Header.Set("X-User-Id", userId)
 		}
 		if roles != "" {
 			req.Header.Set("X-User-Roles", roles)
@@ -152,7 +156,10 @@ func injectUserInfo(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if claims, ok := r.Context().Value(userClaimsKey).(jwt.MapClaims); ok {
 			if sub, exists := claims["sub"]; exists {
-				r.Header.Set("X-User-Subject", fmt.Sprintf("%v", sub))
+				userIdStr := fmt.Sprintf("%v", sub)
+				// Set both headers for compatibility with different services
+				r.Header.Set("X-User-Subject", userIdStr)
+				r.Header.Set("X-User-Id", userIdStr)
 			}
 			if roles, exists := claims["roles"]; exists {
 				if rs, ok := roles.([]interface{}); ok {
@@ -163,7 +170,7 @@ func injectUserInfo(next http.Handler) http.Handler {
 					r.Header.Set("X-User-Roles", strings.Join(parts, ","))
 				}
 			}
-			logger.Info("injecting user info headers", "sub", r.Header.Get("X-User-Subject"))
+			logger.Info("injecting user info headers", "sub", r.Header.Get("X-User-Subject"), "user-id", r.Header.Get("X-User-Id"))
 		}
 		next.ServeHTTP(w, r)
 	})
