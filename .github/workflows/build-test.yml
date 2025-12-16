@@ -31,6 +31,12 @@ jobs:
       - name: Test
         run: go test -v ./...
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Extract branch name
         id: branch
         run: |
