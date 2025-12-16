@@ -1,6 +1,6 @@
 module github.com/CSO2/api-gateway
 
-go 1.20
+go 1.21
 
 require (
 	github.com/go-chi/chi/v5 v5.2.3
