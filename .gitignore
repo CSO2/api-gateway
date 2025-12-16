@@ -1,5 +1,6 @@
 # Ignore built binaries
 apigateway
+api-gateway
 # macOS
 .DS_Store
 # Go vendor
