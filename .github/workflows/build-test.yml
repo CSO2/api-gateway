@@ -70,6 +70,15 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH' # Only fail on Critical and High issues
 
+      # --- NEW STEP: Run Smoke Tests ---
+      - name: Run Smoke Tests
+        run: |
+          docker run -d --name app -p 8080:8080 local-image-scan:latest
+          sleep 5
+          chmod +x ./scripts/smoke-test.sh
+          ./scripts/smoke-test.sh http://localhost:8080
+          docker stop app && docker rm app
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
